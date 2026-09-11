@@ -1,0 +1,31 @@
+   with d AS (SELECT deal.LEAD_ID,
+			deal.DATE_MODIFY ,
+			deal.id AS deal_id,
+		    MAPPHONE.VALUE phone,
+		    camp.campaign_name,
+		    deal.STAGE_ID,
+		    camp.CAMP_LEVEL2,
+		    camp.CAMP_LEVEL0,
+		    deal.DATE_CREATE  date_create,
+		    bl.UF_CRM_STUDENT_CLASS AS lop,
+		    deal.contact_id,
+		    row_number()over(PARTITION BY MAPPHONE.VALUE ORDER BY deal.date_create desc) AS rnk,
+		    bcc.FULL_NAME,
+		    detail_deal.uf_distributed_date AS ngay_chia
+		FROM BITRIX24.B_CRM_DEAL deal
+		LEFT JOIN BITRIX24.B_UTS_CRM_DEAL detail_deal ON deal.ID = DETAIL_DEAL.VALUE_ID
+		LEFT JOIN ods_da.BOD_DIM_CAMPAIGNS camp ON detail_deal.UF_CRM_CAMPAIGN_CODE = camp.ID
+		LEFT JOIN BITRIX24.B_CRM_FIELD_MULTI MAPPHONE 
+		    ON deal.CONTACT_ID = MAPPHONE.ELEMENT_ID 
+		    AND MAPPHONE.ENTITY_ID = 'CONTACT'
+		    AND MAPPHONE.TYPE_ID = 'PHONE'
+		LEFT JOIN BITRIX24.B_CRM_CONTACT bcc ON bcc.ID = deal.CONTACT_ID 
+		LEFT JOIN BITRIX24.B_UTS_CRM_LEAD bl ON bl.value_id = deal.lead_id
+		
+		WHERE
+		
+		--mapphone.VALUE ='345287636'
+
+		camp.CAMP_LEVEL2 = '1.3 Uniclass - DEMO CTV')
+
+select * from d 

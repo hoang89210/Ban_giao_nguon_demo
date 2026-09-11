@@ -1,0 +1,47 @@
+SELECT 
+	CASE 
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%016%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('3', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REGEXP_LIKE(REPLACE(TRIM(T1.Phone), '.', ''), '018|019') AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('5', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REGEXP_LIKE(REPLACE(TRIM(T1.Phone), '.', ''), '012[3-5]') AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('8', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REGEXP_LIKE(REPLACE(TRIM(T1.Phone), '.', ''), '012[068]') AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('7', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0121%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('79', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0122%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('77', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0127%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('81', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0129%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('82', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN (SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 1, 2) = '00' OR SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 1, 1) = '0') 
+         AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) >= 10 
+      THEN SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), -9, 9)
+    ELSE REPLACE(TRIM(T1.Phone), '.', '') END  AS phone,
+	to_char(EXTRACT (YEAR FROM birthday)) YOB,
+	USERNAME
+FROM EDUCADB.EDU_USERS t1
+WHERE CASE 
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%016%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('3', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REGEXP_LIKE(REPLACE(TRIM(T1.Phone), '.', ''), '018|019') AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('5', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REGEXP_LIKE(REPLACE(TRIM(T1.Phone), '.', ''), '012[3-5]') AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('8', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REGEXP_LIKE(REPLACE(TRIM(T1.Phone), '.', ''), '012[068]') AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('7', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 4))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0121%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('79', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0122%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('77', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0127%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('81', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN REPLACE(TRIM(T1.Phone), '.', '') LIKE '%0129%' AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) > 10 
+      THEN CONCAT('82', SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 5))
+    WHEN (SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 1, 2) = '00' OR SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), 1, 1) = '0') 
+         AND LENGTH(REPLACE(TRIM(T1.Phone), '.', '')) >= 10 
+      THEN SUBSTR(REPLACE(TRIM(T1.Phone), '.', ''), -9, 9)
+    ELSE REPLACE(TRIM(T1.Phone), '.', '') END IS NOT NULL 
+    AND to_char(EXTRACT (YEAR FROM birthday)) BETWEEN '2011' AND '2021'

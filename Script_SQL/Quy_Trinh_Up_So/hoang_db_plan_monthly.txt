@@ -36,7 +36,7 @@ WHERE camp_level2 IN
 
 
 AND STAGE_ID NOT LIKE '%WON%'
-AND trunc(ngay_chia) >= to_date('20260814', 'yyyymmdd') -- đổi ngày cho phù hợp ---
+AND trunc(ngay_chia) >= to_date('20260814', 'yyyymmdd') 
 AND trunc(ngay_chia) <= to_date ('20260822','yyyymmdd')
 ),
 bl AS (SELECT * FROM bl1 WHERE rank_bl = 1), 
