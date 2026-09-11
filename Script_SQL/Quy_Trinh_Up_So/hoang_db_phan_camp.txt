@@ -1,0 +1,83 @@
+with p9 as (select 
+p9.*, 
+ldf.stage_name 
+from p9_t p9 
+left join li_do_fail_1905 ldf on ldf.value = p9.phone),
+
+b1 as (
+
+select phone, 
+product_group,
+row_number()over(partition by phone order by bd.updated_at desc) as rnk , 
+dense_rank()over(partition by phone order by bd.product_group ) as n_sp
+from buy_data_3108 bd where bd.pack not like '%uni%'),
+b as (
+select * from b1 where rnk = 1),
+n as (
+
+
+
+select p9.*, 
+b.product_group, 
+case 
+	when lop in ('2015', '2014') then 'c2' 
+	else 'c1'
+end as c1_2,
+case 
+	when stage_name is null then 'lead' 
+	when stage_name in ('L0-Đã chia', 'L1- Chưa kết nối được', 'L2-Đúng đối tượng', 'L3-Quan tâm', 'L4-Xếp lớp demo',
+	'L5-Demo thành công'
+	) then 'lead'
+	when stage_name in ('L6- Tư vấn chốt', 'L7-Đặt cọc học phí', 'L8-Chốt đơn') then 'deal'
+end as l_d,
+n_sp
+from p9  
+left join b on b.phone = p9.phone ), 
+
+nn as (
+
+select phone, lop, firstname,   
+campaign_name ,
+case 
+	when c1_2= 'c1' and l_d ='lead' and n_sp is null then 'Inhouse_EdupiaClass_Tu-van_Demo_nobuy_lead_c1'
+	when c1_2 ='c2' and l_d ='lead' and n_sp is null then 'Inhouse_EdupiaClass_Tu-van_Demo_nobuy_lead_c2'
+	when c1_2 = 'c1' and l_d ='deal' and n_sp is null then 'Inhouse_EdupiaClass_Tu-van_Demo_nobuy_deal_c1'
+	when c1_2 = 'c2' and l_d ='deal' and  n_sp is null then 'Inhouse_EdupiaClass_Tu-van_Demo_nobuy_deal_c2'
+	when c1_2 = 'c1' and  l_d ='lead' and n_sp >=2 then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_lead_2sp_c1'
+	when c1_2 = 'c1' and  l_d ='deal'  and n_sp >=2  then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_deal_2sp_c1'
+	when c1_2 = 'c2' and  l_d ='lead' and n_sp >=2 then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_2sp_lead_c2'
+	when c1_2 = 'c2' and  l_d ='deal'  and n_sp >=2  then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_2sp_deal_c2'
+	when c1_2 = 'c1' and l_d ='lead' and n_sp = 1 and product_group ='Babilala' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_lead_Babi_c1'
+	when c1_2 = 'c1' and l_d ='lead' and n_sp = 1 and product_group = 'Edupia'then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_lead_Edu_c1'
+	when c1_2 = 'c1' and l_d ='lead' and n_sp = 1  and product_group in('Ielts', 'Tutor')  then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_lead_Tutor_c1'
+	when c1_2 = 'c1' and l_d = 'deal' and n_sp = 1 and product_group ='Babilala' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_deal_Babi_c1'
+	when c1_2 = 'c1' and l_d = 'deal' and n_sp = 1 and product_group = 'Edupia' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_deal_Edu_c1'
+	when c1_2 = 'c1' and l_d = 'deal' and n_sp = 1 and product_group in('Ielts', 'Tutor') then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_deal_Tutor_c1'
+	when c1_2 = 'c2' and l_d ='lead' and n_sp = 1 and product_group ='Babilala' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_Babi_lead_c2'
+	when c1_2 = 'c2' and l_d ='lead' and n_sp = 1 and product_group = 'Edupia' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_Edu_lead_c2'
+	when c1_2 = 'c2' and l_d ='lead' and n_sp = 1 and product_group in('Ielts', 'Tutor') then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_Tutor_lead_c2'
+	when c1_2 = 'c2' and l_d = 'deal' and n_sp = 1 and product_group ='Babilala' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_Babi_deal_c2'
+	when c1_2 = 'c2' and l_d = 'deal' and n_sp = 1 and product_group = 'Edupia' then 'Inhouse_EdupiaClass_Tu-van-Demo_isbuy_Edu_deal_c2'
+	when c1_2 = 'c2' and l_d = 'deal' and n_sp = 1 and product_group in('Ielts', 'Tutor') then 'Inhouse_EdupiaClass_Tu-van_Demo_isbuy_Tutor_deal_c2'
+	else 'TC'
+end as camp_logic,
+l_d, 
+n_sp, 
+c1_2
+
+
+from n
+)
+
+select phone, 
+lop, 
+firstname, 
+campaign_name, 
+camp_logic , 
+case 
+	when campaign_name like '%BS%' then campaign_name 
+	else camp_logic
+end as camp_final
+
+from nn 
+
