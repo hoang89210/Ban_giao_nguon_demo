@@ -1,0 +1,95 @@
+WITH a AS (SELECT deal.LEAD_ID,
+deal.DATE_MODIFY ,
+			deal.id AS deal_id,
+		    MAPPHONE.VALUE phone,
+		    deal.STAGE_ID,
+		    camp.CAMP_LEVEL2,
+		    detail_deal.UF_CRM_STUDENT_CLASS,
+		    TRUNC(deal.DATE_CREATE,'MM') date_create,
+		    deal.contact_id,
+		    row_number() over(PARTITION BY value ORDER BY deal.DATE_CREATE asc) rnk
+		FROM BITRIX24.B_CRM_DEAL deal
+		LEFT JOIN BITRIX24.B_UTS_CRM_DEAL detail_deal ON deal.ID = DETAIL_DEAL.VALUE_ID
+		LEFT JOIN ods_da.BOD_DIM_CAMPAIGNS camp ON detail_deal.UF_CRM_CAMPAIGN_CODE = camp.ID
+		LEFT JOIN BITRIX24.B_CRM_FIELD_MULTI MAPPHONE 
+		    ON deal.CONTACT_ID = MAPPHONE.ELEMENT_ID 
+		    AND MAPPHONE.ENTITY_ID = 'CONTACT'
+		    AND MAPPHONE.TYPE_ID = 'PHONE'
+		LEFT JOIN BITRIX24.B_CRM_DEAL deal2 ON deal.id = deal2.ID
+		
+		
+		WHERE camp.CAMP_LEVEL2 IN ('1.1 Tutor - Bán mới từ phễu',
+		'1.2 Tutor - Bán luôn GG + SEO',
+		'1.3 Tutor - Bán mới tối ưu',
+		'1.4 Tutor - Bán luôn FB',
+		'1.5 Tutor - Micro',
+		'1.6 Tutor - Referral',
+		'1.7 Tutor - MGM Giáo viên',
+		'1.8 DA mua SL tặng Tutor',
+		'3 Kênh trường lấy số Tutor')
+		AND (LOWER(deal.STAGE_ID) LIKE '%lose%' OR LOWER(deal.STAGE_ID) LIKE '%apology%')),
+l1 AS (
+    SELECT 
+      leads.id,
+      leads.FULL_NAME,
+      leads.date_create,
+      leads.status_id,
+  	row_number()over(PARTITION BY mapphone.VALUE ORDER BY leads.DATE_CREATE desc) AS rnk,
+      camp.CAMP_LEVEL2,
+      camp.CAMP_LEVEL3,
+      CAMP.CAMPAIGN_NAME,
+      mapphone.VALUE AS phone,
+      detail_lead.UF_CRM_L_SUB_STATUS,
+      detail_lead.UF_CRM_L_LY_DO_THAT_BAI,
+      detail_lead.UF_CAMPAIGN_CODE,
+      detail_lead.UF_CRM_DISTRIBUTOR,
+      detail_lead.UF_CRM_SO_LAN_GOI_RA,
+      detail_lead.UF_DISTRIBUTED_DATE,
+      detail_lead.UF_CRM_STUDENT_CLASS AS lop
+    FROM BITRIX24.B_CRM_LEAD leads
+    LEFT JOIN BITRIX24.B_UTS_CRM_LEAD detail_lead 
+           ON leads.ID = detail_lead.VALUE_ID
+    LEFT JOIN ODS_DA.BOD_DIM_CAMPAIGNS camp 
+           ON detail_lead.UF_CAMPAIGN_CODE = camp.ID 
+    LEFT JOIN BITRIX24.B_CRM_FIELD_MULTI mapphone ON mapphone.ELEMENT_ID = leads.id 
+    			AND mapphone.ENTITY_ID ='LEAD'
+    			AND mapphone.TYPE_ID = 'PHONE'
+    WHERE camp.CAMP_LEVEL2 = '1.3 Uniclass - DEMO CTV'),
+    lni AS (SELECT * FROM l1 WHERE l1.rnk =1),
+ b AS (
+   SELECT 
+	extract(MONTH FROM orders.ORDER_DATE )AS m, 
+	ORDER_DATE AS ngay_ban,
+	ORDERS.PHONE phone,
+	orders.CAMPAIGN_NAME ,
+	crm_pack.name AS pack ,
+	orders.CUSTOMER_NAME,
+	orders.PRICE,
+	cc.PRODUCT,
+	cc.PRODUCT_GROUP,
+	cc.PRODUCT_NAME_SMS,
+	orders.ORDER_DATE,
+	orders.CRM_CONTACT_ID ,
+	orders.CRM_CHILDREN_ID, 
+	dense_rank()over(PARTITION BY phone ORDER BY product_group asc ) AS lan_mua,
+	row_number()OVER (PARTITION BY phone ORDER BY order_date desc) AS rnk 
+
+FROM EDUCA_CRM.CRM_ORDER orders
+LEFT JOIN EDUCA_CRM.CRM_Package crm_pack ON ORDERS.PACKAGE_ID = CRM_PACK.ID
+LEFT JOIN educa_crm.CRM_CATEGORIES cc ON cc.id =  crm_pack."TYPE" 
+LEFT JOIN ODS_DA.BOD_DIM_CAMPAIGNS bdc ON bdc.CAMPAIGN_NAME = orders.CAMPAIGN_NAME 
+WHERE orders.price > 0 AND cc.STATUS =1
+AND bdc.CAMP_LEVEL2 ='1.3 Uniclass - DEMO CTV'
+--and phone ='307201477'
+),
+b1 AS (
+
+SELECT phone FROM b WHERE rnk =1 )
+
+
+SELECT * FROM a WHERE rnk = 1 AND 
+NOT EXISTS (SELECT * FROM b1 WHERE b1.phone = a.phone)
+AND NOT EXISTS (SELECT * FROM lni WHERE lni.phone = a.phone)
+
+
+    
